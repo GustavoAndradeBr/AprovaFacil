@@ -49,6 +49,20 @@ function XIcon() {
   );
 }
 
+function UserIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="4" stroke="#8A8360" strokeWidth="1.6" />
+      <path
+        d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6"
+        stroke="#8A8360"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -68,7 +82,11 @@ export default async function Home() {
     { data: diaHoje },
     { data: diasDoMes },
   ] = await Promise.all([
-    supabase.from("profiles").select("nome").eq("id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("nome, avatar_url")
+      .eq("id", user.id)
+      .single(),
     supabase.from("configuracao").select("*").eq("id", 1).single(),
     supabase.from("assuntos").select("id"),
     supabase
@@ -137,14 +155,28 @@ export default async function Home() {
     <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-start justify-between mb-8">
-          <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
-              {config?.nome_concurso || "Concurso"}
-            </p>
-            <h1 className="font-serif text-[26px] text-[#1B1F1D]">
-              Olá, {profile?.nome?.split(" ")[0] || "candidato"}
-            </h1>
-          </div>
+          <Link href="/perfil" className="flex items-center gap-3 group">
+            <div className="w-11 h-11 rounded-full bg-[#F2F1EC] border border-[#E4E1DA] flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[#8A8360] transition-colors">
+              {profile?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.avatar_url}
+                  alt="Seu avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <UserIcon />
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+                {config?.nome_concurso || "Concurso"}
+              </p>
+              <h1 className="font-serif text-[26px] text-[#1B1F1D] leading-none group-hover:text-[#2F4A3D] transition-colors">
+                Olá, {profile?.nome?.split(" ")[0] || "candidato"}
+              </h1>
+            </div>
+          </Link>
           <LogoutButton />
         </div>
 
@@ -253,6 +285,12 @@ export default async function Home() {
           className="block w-full text-center py-3 rounded-lg border border-[#2F4A3D] text-[#2F4A3D] hover:bg-[#EAF0EC] text-sm font-medium transition mb-3"
         >
           Ver simulados
+        </Link>
+        <Link
+          href="/leaderboard"
+          className="block w-full text-center py-3 rounded-lg border border-[#2F4A3D] text-[#2F4A3D] hover:bg-[#EAF0EC] text-sm font-medium transition mb-3"
+        >
+          Ver ranking 🏆
         </Link>
         <Link
           href="/registrar"
