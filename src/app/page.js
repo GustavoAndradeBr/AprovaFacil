@@ -1,6 +1,53 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { hojeLocalStr } from "@/lib/date";
+import LogoutButton from "@/components/LogoutButton";
+
+function CheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20 6L9 17L4 12"
+        stroke="white"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M18 6L6 18"
+        stroke="#C4644B"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6 6L18 18"
+        stroke="#C4644B"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export default async function Home() {
   const supabase = await createClient();
@@ -10,7 +57,7 @@ export default async function Home() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeLocalStr();
   const inicioMes = hoje.slice(0, 7) + "-01";
 
   const [
@@ -80,6 +127,7 @@ export default async function Home() {
     const dataStr = `${ano}-${String(mes).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     celulas.push({
       dia: d,
+      data: dataStr,
       status: mapaDoDias[dataStr],
       hoje: dataStr === hoje,
     });
@@ -88,13 +136,16 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
       <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
-            {config?.nome_concurso || "Concurso"}
-          </p>
-          <h1 className="font-serif text-[26px] text-[#1B1F1D]">
-            Olá, {profile?.nome?.split(" ")[0] || "candidato"}
-          </h1>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+              {config?.nome_concurso || "Concurso"}
+            </p>
+            <h1 className="font-serif text-[26px] text-[#1B1F1D]">
+              Olá, {profile?.nome?.split(" ")[0] || "candidato"}
+            </h1>
+          </div>
+          <LogoutButton />
         </div>
 
         {/* Dias restantes + progresso do edital */}
@@ -149,32 +200,60 @@ export default async function Home() {
 
         {/* Calendário do mês */}
         <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-6">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
-            Este mês
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[13px] font-medium text-[#1B1F1D]">Este mês</p>
+            <div className="flex items-center gap-3 text-[10px] text-[#8A8360]">
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#2F4A3D] inline-block" />
+                feito
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#F7E8E4] border border-[#E7C9C0] inline-block" />
+                sem registro
+              </span>
+            </div>
+          </div>
           <div className="grid grid-cols-7 gap-1.5">
-            {celulas.map((c, i) => (
-              <div
-                key={i}
-                className={`aspect-square rounded-md flex items-center justify-center text-[11px]
-                  ${
-                    !c
-                      ? ""
-                      : c.status === true
+            {celulas.map((c, i) => {
+              if (!c) return <div key={i} className="aspect-square" />;
+
+              const passou = c.data <= hoje; // já viveu esse dia (inclui hoje)
+              const feito = c.status === true;
+              const naoFeito = passou && !feito;
+
+              return (
+                <div
+                  key={i}
+                  title={c.data}
+                  className={`aspect-square rounded-md flex items-center justify-center text-[11px] font-medium transition-colors
+                    ${
+                      feito
                         ? "bg-[#2F4A3D] text-white"
-                        : c.status === false
-                          ? "bg-[#C4644B] text-white"
+                        : naoFeito
+                          ? "bg-[#F7E8E4] text-[#C4644B]"
                           : "bg-[#F2F1EC] text-[#8A8360]"
-                  }
-                  ${c?.hoje ? "ring-2 ring-[#8A8360]" : ""}
-                `}
-              >
-                {c?.dia}
-              </div>
-            ))}
+                    }
+                    ${c.hoje ? "ring-2 ring-[#8A8360]" : ""}
+                  `}
+                >
+                  {feito ? <CheckIcon /> : naoFeito ? <XIcon /> : c.dia}
+                </div>
+              );
+            })}
           </div>
         </div>
-
+        <Link
+          href="/planejamento"
+          className="block w-full text-center py-3 rounded-lg border border-[#2F4A3D] text-[#2F4A3D] hover:bg-[#EAF0EC] text-sm font-medium transition mb-3"
+        >
+          Ver planejamento da semana
+        </Link>
+        <Link
+          href="/simulados"
+          className="block w-full text-center py-3 rounded-lg border border-[#2F4A3D] text-[#2F4A3D] hover:bg-[#EAF0EC] text-sm font-medium transition mb-3"
+        >
+          Ver simulados
+        </Link>
         <Link
           href="/registrar"
           className="block w-full text-center py-3 rounded-lg bg-[#1B1F1D] hover:bg-[#2F4A3D] text-white text-sm font-medium transition"

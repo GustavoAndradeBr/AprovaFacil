@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { hojeLocalStr } from "@/lib/date";
+import ResetarDiaButton from "@/components/ResetarDiaButton";
 
 const TAF_LABELS = {
   flexao_braco: "Flexão de braço",
@@ -9,10 +11,6 @@ const TAF_LABELS = {
   corrida_50m: "Corrida 50m (segundos)",
   corrida_12min: "Corrida 12min (metros)",
 };
-
-function hojeStr() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default function RegistrarPage() {
   const supabase = createClient();
@@ -55,14 +53,14 @@ export default function RegistrarPage() {
           .from("dias")
           .select("*")
           .eq("user_id", user.id)
-          .eq("data", hojeStr())
+          .eq("data", hojeLocalStr())
           .maybeSingle(),
         supabase.from("taf_metas").select("tipo, meta").eq("user_id", user.id),
         supabase
           .from("taf_registros")
           .select("tipo, valor")
           .eq("user_id", user.id)
-          .eq("data", hojeStr()),
+          .eq("data", hojeLocalStr()),
       ]);
 
       const materiasComAssuntos = (mats || []).map((m) => ({
@@ -120,7 +118,7 @@ export default function RegistrarPage() {
   }
 
   async function salvarDia() {
-    const atualizado = { ...dia, user_id: userId, data: hojeStr() };
+    const atualizado = { ...dia, user_id: userId, data: hojeLocalStr() };
     await supabase
       .from("dias")
       .upsert(atualizado, { onConflict: "user_id,data" });
@@ -132,7 +130,7 @@ export default function RegistrarPage() {
     await supabase
       .from("taf_registros")
       .upsert(
-        { user_id: userId, tipo, valor, data: hojeStr() },
+        { user_id: userId, tipo, valor, data: hojeLocalStr() },
         { onConflict: "user_id,tipo,data" },
       );
     flash("TAF salvo");
@@ -194,9 +192,16 @@ export default function RegistrarPage() {
 
         {/* Horas e questões do dia */}
         <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
-            Resumo do dia
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[13px] font-medium text-[#1B1F1D]">
+              Resumo do dia
+            </p>
+            <ResetarDiaButton
+              userId={userId}
+              onReset={() => window.location.reload()}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label className="block text-[12px] text-[#6B6B63] mb-1">
@@ -204,6 +209,8 @@ export default function RegistrarPage() {
               </label>
               <input
                 type="number"
+                max="24"
+                min="0"
                 step="0.5"
                 value={dia.horas_estudadas}
                 onChange={(e) =>
@@ -212,7 +219,7 @@ export default function RegistrarPage() {
                     horas_estudadas: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#E4E1DA] text-sm focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
               />
             </div>
             <div>
@@ -221,6 +228,8 @@ export default function RegistrarPage() {
               </label>
               <input
                 type="number"
+                min="0"
+                step="1"
                 value={dia.questoes_resolvidas}
                 onChange={(e) =>
                   setDia({
@@ -228,7 +237,7 @@ export default function RegistrarPage() {
                     questoes_resolvidas: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#E4E1DA] text-sm focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
               />
             </div>
           </div>
@@ -352,7 +361,7 @@ export default function RegistrarPage() {
                       {label}
                     </label>
                     {meta != null && (
-                      <span className="text-[11px] text-[#8A8360]">
+                      <span className="text-[15px] text-[#8A8360]">
                         meta: {meta}
                       </span>
                     )}
@@ -360,19 +369,31 @@ export default function RegistrarPage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
-                      step="0.1"
-                      value={valor}
-                      onChange={(e) =>
-                        salvarTaf(tipo, parseFloat(e.target.value) || 0)
+                      min={tipo === "corrida_50m" ? 5 : 0}
+                      step={
+                        tipo === "corrida_50m"
+                          ? 0.5
+                          : tipo === "corrida_12min"
+                            ? 100
+                            : 1
                       }
-                      className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#E4E1DA] text-sm focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                      value={valor}
+                      onChange={(e) => {
+                        const numero =
+                          tipo === "corrida_50m"
+                            ? Math.max(5, parseFloat(e.target.value) || 5)
+                            : Math.max(0, parseFloat(e.target.value) || 0);
+
+                        salvarTaf(tipo, numero);
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#D0CBC2] text-[#2E2E2E] placeholder:text-[#6B6B63] font-medium text-sm focus:outline-none focus:border-[#2F4A3D] focus:ring-2 focus:ring-[#2F4A3D]/20 transition"
                     />
                     {valor !== "" && meta != null && (
                       <span
-                        className={`text-[11px] font-medium px-2 py-1 rounded-full whitespace-nowrap transition-colors ${
+                        className={`text-[10px] font-medium px-2 py-1 rounded-full whitespace-nowrap transition-colors ${
                           bateuMeta
-                            ? "bg-[#EAF0EC] text-[#2F4A3D]"
-                            : "bg-[#F5E9E5] text-[#B3462C]"
+                            ? "bg-[#EAF0EC] text-[#1cbe70]"
+                            : "bg-[#F5E9E5] text-[#ff0000]"
                         }`}
                       >
                         {bateuMeta ? "✓ meta batida" : "abaixo da meta"}
