@@ -12,11 +12,24 @@ const TAF_LABELS = {
   corrida_12min: "Corrida 12min (metros)",
 };
 
+// Intervalos da revisão espaçada, em dias. O último se repete depois.
+const INTERVALOS_REVISAO = [7, 15, 30, 30];
+
+function proximaData(nivel, base) {
+  const dias =
+    INTERVALOS_REVISAO[Math.min(nivel, INTERVALOS_REVISAO.length - 1)];
+  const d = new Date(base + "T00:00:00");
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function RegistrarPage() {
   const supabase = createClient();
   const [userId, setUserId] = useState(null);
   const [materias, setMaterias] = useState([]);
   const [progresso, setProgresso] = useState({});
+  const [revisoes, setRevisoes] = useState({}); // assunto_id -> linha de revisoes
+  const [revisoesPendentes, setRevisoesPendentes] = useState([]);
   const [dia, setDia] = useState({
     horas_estudadas: 0,
     questoes_resolvidas: 0,
@@ -26,6 +39,25 @@ export default function RegistrarPage() {
   const [tafValores, setTafValores] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [salvo, setSalvo] = useState("");
+
+  async function carregarRevisoes(uid) {
+    const hoje = hojeLocalStr();
+    const { data } = await supabase
+      .from("revisoes")
+      .select("id, assunto_id, nivel, proxima_revisao, assuntos(nome)")
+      .eq("user_id", uid);
+
+    const map = {};
+    (data || []).forEach((r) => {
+      map[r.assunto_id] = r;
+    });
+    setRevisoes(map);
+
+    const pendentes = (data || [])
+      .filter((r) => r.proxima_revisao <= hoje)
+      .sort((a, b) => a.proxima_revisao.localeCompare(b.proxima_revisao));
+    setRevisoesPendentes(pendentes);
+  }
 
   useEffect(() => {
     async function carregar() {
@@ -89,6 +121,8 @@ export default function RegistrarPage() {
       });
       setTafValores(valoresMap);
 
+      await carregarRevisoes(user.id);
+
       setCarregando(false);
     }
     carregar();
@@ -115,6 +149,63 @@ export default function RegistrarPage() {
       .from("assunto_progresso")
       .upsert(atualizado, { onConflict: "user_id,assunto_id" });
     flash("Salvo");
+
+    // Se o assunto acabou de ficar 100% completo e ainda não tem
+    // revisão agendada, agenda a primeira pra daqui 7 dias.
+    const completoAgora =
+      atualizado.aula_concluida &&
+      atualizado.resumo_feito &&
+      atualizado.questoes_concluidas &&
+      atualizado.revisao_realizada;
+
+    if (completoAgora && !revisoes[assuntoId]) {
+      const hoje = hojeLocalStr();
+      const nova = {
+        user_id: userId,
+        assunto_id: assuntoId,
+        nivel: 0,
+        ultima_revisao: new Date().toISOString(),
+        proxima_revisao: proximaData(0, hoje),
+      };
+      const { data } = await supabase
+        .from("revisoes")
+        .upsert(nova, { onConflict: "user_id,assunto_id" })
+        .select("id, assunto_id, nivel, proxima_revisao, assuntos(nome)")
+        .single();
+
+      if (data) {
+        setRevisoes((prev) => ({ ...prev, [assuntoId]: data }));
+      }
+    }
+  }
+
+  async function marcarRevisado(revisao) {
+    const hoje = hojeLocalStr();
+    const novoNivel = revisao.nivel + 1;
+    const atualizado = {
+      nivel: novoNivel,
+      ultima_revisao: new Date().toISOString(),
+      proxima_revisao: proximaData(novoNivel, hoje),
+    };
+
+    // Otimista: some da lista de pendentes na hora
+    setRevisoesPendentes((prev) => prev.filter((r) => r.id !== revisao.id));
+
+    const { error } = await supabase
+      .from("revisoes")
+      .update(atualizado)
+      .eq("id", revisao.id);
+
+    if (error) {
+      // Se der erro, recarrega pra não perder a revisão da lista
+      await carregarRevisoes(userId);
+    } else {
+      setRevisoes((prev) => ({
+        ...prev,
+        [revisao.assunto_id]: { ...revisao, ...atualizado },
+      }));
+      flash("Revisão registrada");
+    }
   }
 
   async function salvarDia() {
@@ -189,6 +280,44 @@ export default function RegistrarPage() {
         >
           {salvo}
         </div>
+
+        {/* Revisões pendentes */}
+        {revisoesPendentes.length > 0 && (
+          <div className="bg-white rounded-xl border border-[#D9C58E] p-5 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[13px] font-medium text-[#1B1F1D]">
+                Revisões pendentes
+              </p>
+              <span className="text-[11px] font-medium text-[#8A6D1F] bg-[#FBF1D8] px-2 py-0.5 rounded-full">
+                {revisoesPendentes.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {revisoesPendentes.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between rounded-lg border border-[#EFE3BE] bg-[#FFFBF0] px-3 py-2.5"
+                >
+                  <div>
+                    <p className="text-[13px] text-[#1B1F1D]">
+                      {r.assuntos?.nome || "Assunto"}
+                    </p>
+                    <p className="text-[11px] text-[#8A6D1F]">
+                      atrasada desde{" "}
+                      {r.proxima_revisao.split("-").reverse().join("/")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => marcarRevisado(r)}
+                    className="text-[12px] font-medium text-white bg-[#8A6D1F] hover:bg-[#6E5718] px-3 py-1.5 rounded-lg transition"
+                  >
+                    Revisado ✓
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Horas e questões do dia */}
         <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
@@ -294,6 +423,7 @@ export default function RegistrarPage() {
                         p.resumo_feito &&
                         p.questoes_concluidas &&
                         p.revisao_realizada;
+                      const revisao = revisoes[assunto.id];
                       return (
                         <div
                           key={assunto.id}
@@ -303,9 +433,20 @@ export default function RegistrarPage() {
                               : "border-[#E4E1DA] bg-[#FAFAF8]"
                           }`}
                         >
-                          <p className="text-[13px] text-[#1B1F1D] mb-2">
-                            {assunto.nome}
-                          </p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-[13px] text-[#1B1F1D]">
+                              {assunto.nome}
+                            </p>
+                            {completo && revisao && (
+                              <span className="text-[10px] text-[#8A8360]">
+                                próxima revisão:{" "}
+                                {revisao.proxima_revisao
+                                  .split("-")
+                                  .reverse()
+                                  .join("/")}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
                             {[
                               ["aula_concluida", "Aula"],

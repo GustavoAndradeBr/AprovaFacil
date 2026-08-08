@@ -2,6 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { hojeLocalStr } from "@/lib/date";
+
+function calcularSemanaAtual(dataInicio, hoje, ultimaSemanaDisponivel) {
+  if (!dataInicio) return 1;
+
+  const inicio = new Date(dataInicio + "T00:00:00");
+  const agora = new Date(hoje + "T00:00:00");
+  const diasPassados = Math.floor((agora - inicio) / (1000 * 60 * 60 * 24));
+
+  // ainda não começou o plano
+  if (diasPassados < 0) return 1;
+
+  const semanaCalculada = Math.floor(diasPassados / 7) + 1;
+
+  // não deixa passar da última semana que realmente existe cadastrada,
+  // pra não cair numa semana vazia
+  if (ultimaSemanaDisponivel && semanaCalculada > ultimaSemanaDisponivel) {
+    return ultimaSemanaDisponivel;
+  }
+
+  return semanaCalculada;
+}
 
 export default function PlanejamentoPage() {
   const supabase = createClient();
@@ -20,14 +42,25 @@ export default function PlanejamentoPage() {
       if (!user) return;
       setUserId(user.id);
 
-      // pega a semana mais recente cadastrada (a "atual")
-      const { data: semanas } = await supabase
-        .from("semana_itens")
-        .select("semana_numero")
-        .order("semana_numero", { ascending: false })
-        .limit(1);
+      const [{ data: config }, { data: ultimaSemana }] = await Promise.all([
+        supabase
+          .from("configuracao")
+          .select("data_inicio_plano")
+          .eq("id", 1)
+          .single(),
+        supabase
+          .from("semana_itens")
+          .select("semana_numero")
+          .order("semana_numero", { ascending: false })
+          .limit(1),
+      ]);
 
-      const numero = semanas?.[0]?.semana_numero ?? 1;
+      const ultimaDisponivel = ultimaSemana?.[0]?.semana_numero ?? 1;
+      const numero = calcularSemanaAtual(
+        config?.data_inicio_plano,
+        hojeLocalStr(),
+        ultimaDisponivel,
+      );
       setSemanaNumero(numero);
 
       const [{ data: itensSemana }, { data: prog }] = await Promise.all([
@@ -107,48 +140,64 @@ export default function PlanejamentoPage() {
           {salvo}
         </div>
 
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[13px] font-medium text-[#1B1F1D]">
-              Progresso da semana
+        {itens.length === 0 && (
+          <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
+            <p className="text-[13px] text-[#8A8360]">
+              Ainda não tem itens cadastrados pra Semana {semanaNumero}.
+              Cadastre os itens dessa semana em <code>semana_itens</code> pra
+              esse planejamento aparecer aqui.
             </p>
-            <p className="text-[12px] text-[#8A8360] font-medium">{percent}%</p>
           </div>
-          <div className="w-full h-1.5 bg-[#EDEBE5] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#2F4A3D] rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-        </div>
+        )}
 
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 space-y-2">
-          {itens.map((item) => {
-            const feito = !!progresso[item.id];
-            return (
-              <label
-                key={item.id}
-                className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors select-none ${
-                  feito
-                    ? "border-[#2F4A3D]/30 bg-[#EAF0EC]"
-                    : "border-[#E4E1DA] bg-[#FAFAF8]"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={feito}
-                  onChange={() => toggle(item.id)}
-                  className="w-4 h-4 accent-[#2F4A3D]"
+        {itens.length > 0 && (
+          <>
+            <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[13px] font-medium text-[#1B1F1D]">
+                  Progresso da semana
+                </p>
+                <p className="text-[12px] text-[#8A8360] font-medium">
+                  {percent}%
+                </p>
+              </div>
+              <div className="w-full h-1.5 bg-[#EDEBE5] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#2F4A3D] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${percent}%` }}
                 />
-                <span
-                  className={`text-[13px] ${feito ? "text-[#2F4A3D] line-through" : "text-[#1B1F1D]"}`}
-                >
-                  {item.titulo}
-                </span>
-              </label>
-            );
-          })}
-        </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 space-y-2">
+              {itens.map((item) => {
+                const feito = !!progresso[item.id];
+                return (
+                  <label
+                    key={item.id}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors select-none ${
+                      feito
+                        ? "border-[#2F4A3D]/30 bg-[#EAF0EC]"
+                        : "border-[#E4E1DA] bg-[#FAFAF8]"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={feito}
+                      onChange={() => toggle(item.id)}
+                      className="w-4 h-4 accent-[#2F4A3D]"
+                    />
+                    <span
+                      className={`text-[13px] ${feito ? "text-[#2F4A3D] line-through" : "text-[#1B1F1D]"}`}
+                    >
+                      {item.titulo}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

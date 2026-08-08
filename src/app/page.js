@@ -293,6 +293,12 @@ export default async function Home() {
           Ver ranking 🏆
         </Link>
         <Link
+          href="/evolucao"
+          className="block w-full text-center py-3 rounded-lg border border-[#2F4A3D] text-[#2F4A3D] hover:bg-[#EAF0EC] text-sm font-medium transition mb-3"
+        >
+          Ver evolução 📈
+        </Link>
+        <Link
           href="/registrar"
           className="block w-full text-center py-3 rounded-lg bg-[#1B1F1D] hover:bg-[#2F4A3D] text-white text-sm font-medium transition"
         >
