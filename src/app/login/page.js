@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import loginBg from "@/assets/login-bg.mp4";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -45,7 +46,7 @@ export default function LoginPage() {
         preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-40"
       >
-        <source src="/videos/login-bg.mp4" type="video/mp4" />
+        <source src={loginBg} type="video/mp4" />
       </video>
 
       <div className="absolute inset-0 bg-gradient-to-b from-[#0B0D0E]/80 via-[#14171A]/85 to-[#0B0D0E]/95" />
