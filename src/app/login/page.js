@@ -37,22 +37,19 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-[#14171A]">
-      {/* Vídeo de fundo — coloque seu arquivo em /public/videos/login-bg.mp4
-          Se o arquivo não existir, o fundo escuro sólido já fica bom sozinho. */}
       <video
         autoPlay
         muted
         loop
         playsInline
+        preload="auto"
         className="absolute inset-0 w-full h-full object-cover opacity-40"
       >
         <source src="/videos/login-bg.mp4" type="video/mp4" />
       </video>
 
-      {/* Camada escura por cima do vídeo, pra garantir contraste e clima noturno */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0B0D0E]/80 via-[#14171A]/85 to-[#0B0D0E]/95" />
 
-      {/* Textura sutil de "linhas de scan", reforça o clima de central de despacho */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
