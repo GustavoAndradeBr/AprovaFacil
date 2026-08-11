@@ -11,13 +11,10 @@ function calcularSemanaAtual(dataInicio, hoje, ultimaSemanaDisponivel) {
   const agora = new Date(hoje + "T00:00:00");
   const diasPassados = Math.floor((agora - inicio) / (1000 * 60 * 60 * 24));
 
-  // ainda não começou o plano
   if (diasPassados < 0) return 1;
 
   const semanaCalculada = Math.floor(diasPassados / 7) + 1;
 
-  // não deixa passar da última semana que realmente existe cadastrada,
-  // pra não cair numa semana vazia
   if (ultimaSemanaDisponivel && semanaCalculada > ultimaSemanaDisponivel) {
     return ultimaSemanaDisponivel;
   }
@@ -104,34 +101,34 @@ export default function PlanejamentoPage() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center">
-        <p className="text-[#8A8360] text-sm animate-pulse">Carregando...</p>
+      <div className="min-h-screen bg-[#14171A] flex items-center justify-center">
+        <p className="text-[#8B9296] text-sm animate-pulse">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
+    <div className="min-h-screen bg-[#14171A] px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8B9296] font-medium mb-1">
               Semana {semanaNumero}
             </p>
-            <h1 className="font-serif text-[24px] text-[#1B1F1D]">
+            <h1 className="font-[family-name:var(--font-oswald)] font-medium text-[22px] text-[#E9E7E0]">
               Planejamento da semana
             </h1>
           </div>
           <a
             href="/"
-            className="text-[13px] text-[#6B6B63] hover:text-[#1B1F1D] transition"
+            className="text-[13px] text-[#8B9296] hover:text-[#E9E7E0] transition"
           >
             ← Home
           </a>
         </div>
 
         <div
-          className={`fixed top-6 right-6 bg-[#1B1F1D] text-white text-[13px] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+          className={`fixed top-6 right-6 bg-[#C9A227] text-[#1D1503] text-[13px] font-medium px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
             salvo
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-2 pointer-events-none"
@@ -141,8 +138,8 @@ export default function PlanejamentoPage() {
         </div>
 
         {itens.length === 0 && (
-          <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-            <p className="text-[13px] text-[#8A8360]">
+          <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
+            <p className="text-[13px] text-[#8B9296]">
               Ainda não tem itens cadastrados pra Semana {semanaNumero}.
               Cadastre os itens dessa semana em <code>semana_itens</code> pra
               esse planejamento aparecer aqui.
@@ -152,24 +149,24 @@ export default function PlanejamentoPage() {
 
         {itens.length > 0 && (
           <>
-            <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
+            <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[13px] font-medium text-[#1B1F1D]">
+                <p className="text-[13px] font-medium text-[#E9E7E0]">
                   Progresso da semana
                 </p>
-                <p className="text-[12px] text-[#8A8360] font-medium">
+                <p className="text-[12px] text-[#DBAF2C] font-medium font-[family-name:var(--font-geist-mono)]">
                   {percent}%
                 </p>
               </div>
-              <div className="w-full h-1.5 bg-[#EDEBE5] rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-[#14171A] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#2F4A3D] rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-[#7A9770] rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${percent}%` }}
                 />
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 space-y-2">
+            <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 space-y-2">
               {itens.map((item) => {
                 const feito = !!progresso[item.id];
                 return (
@@ -177,18 +174,18 @@ export default function PlanejamentoPage() {
                     key={item.id}
                     className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors select-none ${
                       feito
-                        ? "border-[#2F4A3D]/30 bg-[#EAF0EC]"
-                        : "border-[#E4E1DA] bg-[#FAFAF8]"
+                        ? "border-[#3A4A35] bg-[#1F2A1D]"
+                        : "border-[#2A2E31] bg-[#14171A]"
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={feito}
                       onChange={() => toggle(item.id)}
-                      className="w-4 h-4 accent-[#2F4A3D]"
+                      className="w-4 h-4 accent-[#C9A227]"
                     />
                     <span
-                      className={`text-[13px] ${feito ? "text-[#2F4A3D] line-through" : "text-[#1B1F1D]"}`}
+                      className={`text-[13px] ${feito ? "text-[#7A9770] line-through" : "text-[#E9E7E0]"}`}
                     >
                       {item.titulo}
                     </span>

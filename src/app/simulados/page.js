@@ -14,13 +14,7 @@ function formatarData(dataStr) {
 
 function TrashIcon() {
   return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
       <path
         d="M4 7H20"
         stroke="currentColor"
@@ -118,8 +112,6 @@ export default function SimuladosPage() {
     if (!confirmar) return;
 
     setExcluindoId(id);
-
-    // Atualiza a lista local na hora, sem esperar a resposta do servidor
     setSimulados((prev) => prev.filter((s) => s.id !== id));
 
     const { error } = await supabase
@@ -129,7 +121,6 @@ export default function SimuladosPage() {
       .eq("user_id", userId);
 
     if (error) {
-      // Se der erro, recarrega do banco pra não ficar com estado errado
       await carregarSimulados(userId);
       window.alert("Não foi possível excluir. Tente novamente.");
     } else {
@@ -148,32 +139,34 @@ export default function SimuladosPage() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center">
-        <p className="text-[#8A8360] text-sm animate-pulse">Carregando...</p>
+      <div className="min-h-screen bg-[#14171A] flex items-center justify-center">
+        <p className="text-[#8B9296] text-sm animate-pulse">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
+    <div className="min-h-screen bg-[#14171A] px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8B9296] font-medium mb-1">
               Evolução
             </p>
-            <h1 className="font-serif text-[24px] text-[#1B1F1D]">Simulados</h1>
+            <h1 className="font-[family-name:var(--font-oswald)] font-medium text-[22px] text-[#E9E7E0]">
+              Simulados
+            </h1>
           </div>
           <a
             href="/"
-            className="text-[13px] text-[#6B6B63] hover:text-[#1B1F1D] transition"
+            className="text-[13px] text-[#8B9296] hover:text-[#E9E7E0] transition"
           >
             ← Home
           </a>
         </div>
 
         <div
-          className={`fixed top-6 right-6 bg-[#1B1F1D] text-white text-[13px] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+          className={`fixed top-6 right-6 bg-[#C9A227] text-[#1D1503] text-[13px] font-medium px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
             salvo
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-2 pointer-events-none"
@@ -182,28 +175,27 @@ export default function SimuladosPage() {
           {salvo}
         </div>
 
-        {/* Formulário de novo simulado */}
         <form
           onSubmit={salvar}
-          className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4"
+          className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4"
         >
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-3">
             Registrar novo simulado
           </p>
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div>
-              <label className="block text-[12px] text-[#6B6B63] mb-1">
+              <label className="block text-[12px] text-[#8B9296] mb-1">
                 Data
               </label>
               <input
                 type="date"
                 value={data}
                 onChange={(e) => setData(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#14171A] border border-[#2A2E31] text-sm text-[#E9E7E0] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
             </div>
             <div>
-              <label className="block text-[12px] text-[#6B6B63] mb-1">
+              <label className="block text-[12px] text-[#8B9296] mb-1">
                 Nota
               </label>
               <input
@@ -214,11 +206,11 @@ export default function SimuladosPage() {
                 placeholder="0-10"
                 value={nota}
                 onChange={(e) => setNota(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#14171A] border border-[#2A2E31] text-sm text-[#E9E7E0] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
             </div>
             <div>
-              <label className="block text-[12px] text-[#6B6B63] mb-1">
+              <label className="block text-[12px] text-[#8B9296] mb-1">
                 % acertos
               </label>
               <input
@@ -229,27 +221,26 @@ export default function SimuladosPage() {
                 placeholder="0-100"
                 value={percentual}
                 onChange={(e) => setPercentual(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#14171A] border border-[#2A2E31] text-sm text-[#E9E7E0] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={salvando}
-            className="w-full py-2 rounded-lg bg-[#1B1F1D] hover:bg-[#2F4A3D] text-white text-sm font-medium transition disabled:opacity-50"
+            className="w-full py-2 rounded-lg bg-[#C9A227] hover:bg-[#DBAF2C] text-[#1D1503] text-sm font-semibold transition disabled:opacity-50"
           >
             {salvando ? "Salvando..." : "Adicionar simulado"}
           </button>
         </form>
 
-        {/* Histórico */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-3">
             Histórico
           </p>
 
           {simulados.length === 0 ? (
-            <p className="text-[13px] text-[#8A8360]">
+            <p className="text-[13px] text-[#8B9296]">
               Nenhum simulado registrado ainda.
             </p>
           ) : (
@@ -264,16 +255,16 @@ export default function SimuladosPage() {
                     key={s.id}
                     className={`group flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
                       éMelhor
-                        ? "border-[#8A8360]/40 bg-[#FBF6EC]"
-                        : "border-[#E4E1DA] bg-[#FAFAF8]"
+                        ? "border-[#5C4A1A] bg-[#1F1B0D]"
+                        : "border-[#2A2E31] bg-[#14171A]"
                     }`}
                   >
                     <div>
-                      <p className="text-[13px] text-[#1B1F1D]">
+                      <p className="text-[13px] text-[#E9E7E0]">
                         {formatarData(s.data)}
                       </p>
                       {éMelhor && (
-                        <span className="text-[10px] font-medium text-[#8A8360]">
+                        <span className="text-[10px] font-medium text-[#DBAF2C]">
                           melhor resultado
                         </span>
                       )}
@@ -282,18 +273,18 @@ export default function SimuladosPage() {
                       <div className="flex gap-4 text-right">
                         {s.nota != null && (
                           <div>
-                            <p className="text-[15px] font-medium text-[#1B1F1D]">
+                            <p className="text-[15px] font-medium text-[#E9E7E0] font-[family-name:var(--font-geist-mono)]">
                               {s.nota}
                             </p>
-                            <p className="text-[10px] text-[#6B6B63]">nota</p>
+                            <p className="text-[10px] text-[#8B9296]">nota</p>
                           </div>
                         )}
                         {s.percentual != null && (
                           <div>
-                            <p className="text-[15px] font-medium text-[#1B1F1D]">
+                            <p className="text-[15px] font-medium text-[#E9E7E0] font-[family-name:var(--font-geist-mono)]">
                               {s.percentual}%
                             </p>
-                            <p className="text-[10px] text-[#6B6B63]">
+                            <p className="text-[10px] text-[#8B9296]">
                               acertos
                             </p>
                           </div>
@@ -305,7 +296,7 @@ export default function SimuladosPage() {
                         disabled={excluindoId === s.id}
                         aria-label="Excluir simulado"
                         title="Excluir simulado"
-                        className="text-[#B0AA9E] hover:text-[#C4644B] transition-colors disabled:opacity-40 p-1 -mr-1"
+                        className="text-[#5C6165] hover:text-[#E2534A] transition-colors disabled:opacity-40 p-1 -mr-1"
                       >
                         <TrashIcon />
                       </button>

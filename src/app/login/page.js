@@ -36,28 +36,70 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F6F2] px-4">
-      <div className="w-full max-w-[380px]">
+    <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-[#14171A]">
+      {/* Vídeo de fundo — coloque seu arquivo em /public/videos/login-bg.mp4
+          Se o arquivo não existir, o fundo escuro sólido já fica bom sozinho. */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover opacity-40"
+      >
+        <source src="/videos/login-bg.mp4" type="video/mp4" />
+      </video>
+
+      {/* Camada escura por cima do vídeo, pra garantir contraste e clima noturno */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0B0D0E]/80 via-[#14171A]/85 to-[#0B0D0E]/95" />
+
+      {/* Textura sutil de "linhas de scan", reforça o clima de central de despacho */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, #E9E7E0 0px, transparent 1px, transparent 3px)",
+        }}
+      />
+
+      <div className="relative w-full max-w-[380px]">
         <div className="mb-8 text-center">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-3">
+          <div className="w-14 h-14 rounded-xl bg-[#1D2124] border border-[#C9A227] flex items-center justify-center mx-auto mb-4">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2 L20 5.5 V11 C20 16.5 16.5 20.7 12 22 C7.5 20.7 4 16.5 4 11 V5.5 Z"
+                fill="#2F4A3D"
+                stroke="#C9A227"
+                strokeWidth="1"
+              />
+              <path
+                d="M8 12 L11 15 L16 9"
+                fill="none"
+                stroke="#E9E7E0"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <p className="text-[11px] tracking-[0.25em] uppercase text-[#8B9296] font-medium mb-2">
             Acesso restrito
           </p>
-          <h1 className="font-serif text-[28px] text-[#1B1F1D] leading-tight">
+          <h1 className="font-[family-name:var(--font-oswald)] font-semibold uppercase tracking-wide text-[26px] text-[#E9E7E0] leading-tight">
             Estudos GCM Limeira
           </h1>
-          <p className="text-[#6B6B63] text-sm mt-1">
+          <p className="text-[#8B9296] text-sm mt-1">
             Concurso Público 07/2026
           </p>
         </div>
 
         <form
           onSubmit={handleLogin}
-          className="bg-white rounded-xl border border-[#E4E1DA] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(27,31,29,0.06)] overflow-hidden"
+          className="bg-[#1D2124]/95 backdrop-blur-sm rounded-xl border border-[#2A2E31] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_16px_40px_rgba(0,0,0,0.5)] overflow-hidden"
         >
-          <div className="h-[3px] bg-[#2F4A3D]" />
+          <div className="h-[3px] bg-[#C9A227]" />
 
           <div className="p-8">
-            <label className="block text-[13px] font-medium text-[#1B1F1D] mb-1.5">
+            <label className="block text-[13px] font-medium text-[#E9E7E0] mb-1.5">
               E-mail
             </label>
             <input
@@ -66,16 +108,16 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="seuemail@gmail.com"
-              className="w-full mb-5 px-3.5 py-2.5 rounded-lg bg-[#FAFAF8] text-[#1B1F1D] text-sm border border-[#E4E1DA] placeholder:text-[#A8A69D] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+              className="w-full mb-5 px-3.5 py-2.5 rounded-lg bg-[#14171A] text-[#E9E7E0] text-sm border border-[#2A2E31] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
             />
 
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[13px] font-medium text-[#1B1F1D]">
+              <label className="text-[13px] font-medium text-[#E9E7E0]">
                 Senha
               </label>
               <Link
                 href="/esqueci-senha"
-                className="text-[12px] text-[#8A8360] hover:text-[#2F4A3D] transition"
+                className="text-[12px] text-[#C9A227] hover:text-[#E0B840] transition"
               >
                 Esqueci minha senha
               </Link>
@@ -87,12 +129,12 @@ export default function LoginPage() {
                 onChange={(e) => setSenha(e.target.value)}
                 required
                 placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 pr-11 rounded-lg bg-[#FAFAF8] text-[#1B1F1D] text-sm border border-[#E4E1DA] placeholder:text-[#A8A69D] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3.5 py-2.5 pr-11 rounded-lg bg-[#14171A] text-[#E9E7E0] text-sm border border-[#2A2E31] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
               <button
                 type="button"
                 onClick={() => setMostrarSenha((v) => !v)}
-                className="absolute right-0 top-0 h-full px-3 flex items-center text-[#8A8360] hover:text-[#2F4A3D] transition"
+                className="absolute right-0 top-0 h-full px-3 flex items-center text-[#8B9296] hover:text-[#C9A227] transition"
                 aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
               >
                 {mostrarSenha ? (
@@ -136,20 +178,20 @@ export default function LoginPage() {
             </div>
 
             {erro && (
-              <p className="text-[#B3462C] text-[13px] mt-2 mb-1">{erro}</p>
+              <p className="text-[#E2534A] text-[13px] mt-2 mb-1">{erro}</p>
             )}
 
             <button
               type="submit"
               disabled={carregando}
-              className="w-full mt-5 py-2.5 rounded-lg bg-[#1B1F1D] hover:bg-[#2F4A3D] text-white text-sm font-medium transition disabled:opacity-50"
+              className="w-full mt-5 py-2.5 rounded-lg bg-[#C9A227] hover:bg-[#DBAF2C] text-[#1D1503] text-sm font-semibold transition disabled:opacity-50"
             >
               {carregando ? "Entrando..." : "Entrar"}
             </button>
           </div>
         </form>
 
-        <p className="text-center text-[12px] text-[#A8A69D] mt-6">
+        <p className="text-center text-[12px] text-[#5C6165] mt-6">
           Ferramenta de preparação · uso restrito a 5 pessoas <br /> Gustavo
           Andrade
         </p>

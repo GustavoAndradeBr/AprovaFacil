@@ -12,7 +12,6 @@ const TAF_LABELS = {
   corrida_12min: "Corrida 12min (metros)",
 };
 
-// Intervalos da revisão espaçada, em dias. O último se repete depois.
 const INTERVALOS_REVISAO = [7, 15, 30, 30];
 
 function proximaData(nivel, base) {
@@ -28,7 +27,7 @@ export default function RegistrarPage() {
   const [userId, setUserId] = useState(null);
   const [materias, setMaterias] = useState([]);
   const [progresso, setProgresso] = useState({});
-  const [revisoes, setRevisoes] = useState({}); // assunto_id -> linha de revisoes
+  const [revisoes, setRevisoes] = useState({});
   const [revisoesPendentes, setRevisoesPendentes] = useState([]);
   const [dia, setDia] = useState({
     horas_estudadas: 0,
@@ -150,8 +149,6 @@ export default function RegistrarPage() {
       .upsert(atualizado, { onConflict: "user_id,assunto_id" });
     flash("Salvo");
 
-    // Se o assunto acabou de ficar 100% completo e ainda não tem
-    // revisão agendada, agenda a primeira pra daqui 7 dias.
     const completoAgora =
       atualizado.aula_concluida &&
       atualizado.resumo_feito &&
@@ -188,7 +185,6 @@ export default function RegistrarPage() {
       proxima_revisao: proximaData(novoNivel, hoje),
     };
 
-    // Otimista: some da lista de pendentes na hora
     setRevisoesPendentes((prev) => prev.filter((r) => r.id !== revisao.id));
 
     const { error } = await supabase
@@ -197,7 +193,6 @@ export default function RegistrarPage() {
       .eq("id", revisao.id);
 
     if (error) {
-      // Se der erro, recarrega pra não perder a revisão da lista
       await carregarRevisoes(userId);
     } else {
       setRevisoes((prev) => ({
@@ -244,35 +239,34 @@ export default function RegistrarPage() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center">
-        <p className="text-[#8A8360] text-sm animate-pulse">Carregando...</p>
+      <div className="min-h-screen bg-[#14171A] flex items-center justify-center">
+        <p className="text-[#8B9296] text-sm animate-pulse">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
+    <div className="min-h-screen bg-[#14171A] px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8B9296] font-medium mb-1">
               Registro do dia
             </p>
-            <h1 className="font-serif text-[24px] text-[#1B1F1D]">
+            <h1 className="font-[family-name:var(--font-oswald)] font-medium text-[22px] text-[#E9E7E0]">
               O que você fez hoje?
             </h1>
           </div>
           <a
             href="/"
-            className="text-[13px] text-[#6B6B63] hover:text-[#1B1F1D] transition"
+            className="text-[13px] text-[#8B9296] hover:text-[#E9E7E0] transition"
           >
             ← Home
           </a>
         </div>
 
-        {/* toast simples */}
         <div
-          className={`fixed top-6 right-6 bg-[#1B1F1D] text-white text-[13px] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+          className={`fixed top-6 right-6 bg-[#C9A227] text-[#1D1503] text-[13px] font-medium px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
             salvo
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-2 pointer-events-none"
@@ -283,12 +277,12 @@ export default function RegistrarPage() {
 
         {/* Revisões pendentes */}
         {revisoesPendentes.length > 0 && (
-          <div className="bg-white rounded-xl border border-[#D9C58E] p-5 mb-4">
+          <div className="bg-[#1D2124] rounded-lg border border-[#5C4A1A] p-5 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[13px] font-medium text-[#1B1F1D]">
+              <p className="text-[13px] font-medium text-[#E9E7E0]">
                 Revisões pendentes
               </p>
-              <span className="text-[11px] font-medium text-[#8A6D1F] bg-[#FBF1D8] px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-medium text-[#DBAF2C] bg-[#3A2E0C] px-2 py-0.5 rounded-full font-[family-name:var(--font-geist-mono)]">
                 {revisoesPendentes.length}
               </span>
             </div>
@@ -296,20 +290,20 @@ export default function RegistrarPage() {
               {revisoesPendentes.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between rounded-lg border border-[#EFE3BE] bg-[#FFFBF0] px-3 py-2.5"
+                  className="flex items-center justify-between rounded-lg border border-[#3A2E0C] bg-[#1F1B0D] px-3 py-2.5"
                 >
                   <div>
-                    <p className="text-[13px] text-[#1B1F1D]">
+                    <p className="text-[13px] text-[#E9E7E0]">
                       {r.assuntos?.nome || "Assunto"}
                     </p>
-                    <p className="text-[11px] text-[#8A6D1F]">
+                    <p className="text-[11px] text-[#DBAF2C]">
                       atrasada desde{" "}
                       {r.proxima_revisao.split("-").reverse().join("/")}
                     </p>
                   </div>
                   <button
                     onClick={() => marcarRevisado(r)}
-                    className="text-[12px] font-medium text-white bg-[#8A6D1F] hover:bg-[#6E5718] px-3 py-1.5 rounded-lg transition"
+                    className="text-[12px] font-medium text-[#1D1503] bg-[#C9A227] hover:bg-[#DBAF2C] px-3 py-1.5 rounded-lg transition"
                   >
                     Revisado ✓
                   </button>
@@ -320,9 +314,9 @@ export default function RegistrarPage() {
         )}
 
         {/* Horas e questões do dia */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[13px] font-medium text-[#1B1F1D]">
+            <p className="text-[13px] font-medium text-[#E9E7E0]">
               Resumo do dia
             </p>
             <ResetarDiaButton
@@ -333,7 +327,7 @@ export default function RegistrarPage() {
 
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-[12px] text-[#6B6B63] mb-1">
+              <label className="block text-[12px] text-[#8B9296] mb-1">
                 Horas estudadas
               </label>
               <input
@@ -348,11 +342,11 @@ export default function RegistrarPage() {
                     horas_estudadas: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#14171A] border border-[#2A2E31] text-sm text-[#E9E7E0] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
             </div>
             <div>
-              <label className="block text-[12px] text-[#6B6B63] mb-1">
+              <label className="block text-[12px] text-[#8B9296] mb-1">
                 Questões resolvidas
               </label>
               <input
@@ -366,7 +360,7 @@ export default function RegistrarPage() {
                     questoes_resolvidas: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-[#FAFAF8] border border-[#D0CBC2] text-sm text-[#2F2F2F] placeholder:text-[#6B6B63] focus:outline-none focus:border-[#2F4A3D] focus:ring-1 focus:ring-[#2F4A3D] transition"
+                className="w-full px-3 py-2 rounded-lg bg-[#14171A] border border-[#2A2E31] text-sm text-[#E9E7E0] placeholder:text-[#5C6165] focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition"
               />
             </div>
           </div>
@@ -376,24 +370,24 @@ export default function RegistrarPage() {
               type="checkbox"
               checked={dia.concluido}
               onChange={(e) => setDia({ ...dia, concluido: e.target.checked })}
-              className="w-4 h-4 accent-[#2F4A3D]"
+              className="w-4 h-4 accent-[#C9A227]"
             />
-            <span className="text-[13px] text-[#1B1F1D]">
+            <span className="text-[13px] text-[#E9E7E0]">
               Marcar hoje como dia concluído
             </span>
           </label>
 
           <button
             onClick={salvarDia}
-            className="w-full py-2 rounded-lg bg-[#1B1F1D] hover:bg-[#2F4A3D] text-white text-sm font-medium transition"
+            className="w-full py-2 rounded-lg bg-[#C9A227] hover:bg-[#DBAF2C] text-[#1D1503] text-sm font-semibold transition"
           >
             Salvar dia
           </button>
         </div>
 
         {/* Edital */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-4">Edital</p>
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-4">Edital</p>
 
           <div className="space-y-5">
             {materias.map((materia) => {
@@ -401,16 +395,16 @@ export default function RegistrarPage() {
               return (
                 <div key={materia.id}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[13px] font-medium text-[#1B1F1D]">
+                    <p className="text-[13px] font-medium text-[#E9E7E0]">
                       {materia.nome}
                     </p>
-                    <p className="text-[12px] text-[#8A8360] font-medium">
+                    <p className="text-[12px] text-[#DBAF2C] font-medium font-[family-name:var(--font-geist-mono)]">
                       {percent}%
                     </p>
                   </div>
-                  <div className="w-full h-1.5 bg-[#EDEBE5] rounded-full overflow-hidden mb-3">
+                  <div className="w-full h-1.5 bg-[#14171A] rounded-full overflow-hidden mb-3">
                     <div
-                      className="h-full bg-[#2F4A3D] rounded-full transition-all duration-500 ease-out"
+                      className="h-full bg-[#7A9770] rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
@@ -429,16 +423,16 @@ export default function RegistrarPage() {
                           key={assunto.id}
                           className={`rounded-lg border px-3 py-2.5 transition-colors ${
                             completo
-                              ? "border-[#2F4A3D]/30 bg-[#EAF0EC]"
-                              : "border-[#E4E1DA] bg-[#FAFAF8]"
+                              ? "border-[#3A4A35] bg-[#1F2A1D]"
+                              : "border-[#2A2E31] bg-[#14171A]"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-[13px] text-[#1B1F1D]">
+                            <p className="text-[13px] text-[#E9E7E0]">
                               {assunto.nome}
                             </p>
                             {completo && revisao && (
-                              <span className="text-[10px] text-[#8A8360]">
+                              <span className="text-[10px] text-[#8B9296] font-[family-name:var(--font-geist-mono)]">
                                 próxima revisão:{" "}
                                 {revisao.proxima_revisao
                                   .split("-")
@@ -456,13 +450,13 @@ export default function RegistrarPage() {
                             ].map(([campo, label]) => (
                               <label
                                 key={campo}
-                                className="flex items-center gap-1.5 text-[12px] text-[#6B6B63] cursor-pointer select-none"
+                                className="flex items-center gap-1.5 text-[12px] text-[#8B9296] cursor-pointer select-none"
                               >
                                 <input
                                   type="checkbox"
                                   checked={!!p[campo]}
                                   onChange={() => toggleItem(assunto.id, campo)}
-                                  className="w-3.5 h-3.5 accent-[#2F4A3D]"
+                                  className="w-3.5 h-3.5 accent-[#C9A227]"
                                 />
                                 {label}
                               </label>
@@ -479,8 +473,8 @@ export default function RegistrarPage() {
         </div>
 
         {/* TAF */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-8">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-4">
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-8">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-4">
             TAF de hoje
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -495,14 +489,14 @@ export default function RegistrarPage() {
               return (
                 <div
                   key={tipo}
-                  className="rounded-lg border border-[#E4E1DA] bg-[#FAFAF8] p-3"
+                  className="rounded-lg border border-[#2A2E31] bg-[#14171A] p-3"
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[12px] text-[#1B1F1D]">
+                    <label className="text-[12px] text-[#E9E7E0]">
                       {label}
                     </label>
                     {meta != null && (
-                      <span className="text-[15px] text-[#8A8360]">
+                      <span className="text-[13px] text-[#8B9296] font-[family-name:var(--font-geist-mono)]">
                         meta: {meta}
                       </span>
                     )}
@@ -527,14 +521,14 @@ export default function RegistrarPage() {
 
                         salvarTaf(tipo, numero);
                       }}
-                      className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#D0CBC2] text-[#2E2E2E] placeholder:text-[#6B6B63] font-medium text-sm focus:outline-none focus:border-[#2F4A3D] focus:ring-2 focus:ring-[#2F4A3D]/20 transition"
+                      className="flex-1 px-3 py-2 rounded-lg bg-[#1D2124] border border-[#2A2E31] text-[#E9E7E0] placeholder:text-[#5C6165] font-medium font-[family-name:var(--font-geist-mono)] text-sm focus:outline-none focus:border-[#C9A227] focus:ring-2 focus:ring-[#C9A227]/20 transition"
                     />
                     {valor !== "" && meta != null && (
                       <span
                         className={`text-[10px] font-medium px-2 py-1 rounded-full whitespace-nowrap transition-colors ${
                           bateuMeta
-                            ? "bg-[#EAF0EC] text-[#1cbe70]"
-                            : "bg-[#F5E9E5] text-[#ff0000]"
+                            ? "bg-[#1F2A1D] text-[#7A9770]"
+                            : "bg-[#3A2220] text-[#E2534A]"
                         }`}
                       >
                         {bateuMeta ? "✓ meta batida" : "abaixo da meta"}

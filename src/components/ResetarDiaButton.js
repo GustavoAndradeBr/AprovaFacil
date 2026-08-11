@@ -20,8 +20,6 @@ export default function ResetarDiaButton({ userId, onReset }) {
     setErro("");
     const hoje = hojeLocalStr();
 
-    // Apaga a linha do dia (em vez de zerar), assim ele volta a ficar
-    // como "sem registro" — igual a um dia que nunca foi mexido.
     const { error: erroDia } = await supabase
       .from("dias")
       .delete()
@@ -47,15 +45,13 @@ export default function ResetarDiaButton({ userId, onReset }) {
 
   if (confirmando) {
     return (
-      <div className="flex flex-col items-center gap-1.5 text-[12px]">
+      <div className="flex flex-col items-end gap-1.5 text-[12px]">
         <div className="flex items-center gap-2">
-          <span className="text-[#6B6B63]">
-            Apagar registro de hoje (horas, questões e TAF)?
-          </span>
+          <span className="text-[#8B9296]">Apagar registro de hoje?</span>
           <button
             onClick={resetar}
             disabled={resetando}
-            className="text-[#B3462C] font-medium hover:underline disabled:opacity-50"
+            className="text-[#E2534A] font-medium hover:underline disabled:opacity-50"
           >
             {resetando ? "Apagando..." : "Confirmar"}
           </button>
@@ -65,12 +61,12 @@ export default function ResetarDiaButton({ userId, onReset }) {
               setErro("");
             }}
             disabled={resetando}
-            className="text-[#6B6B63] hover:underline disabled:opacity-50"
+            className="text-[#8B9296] hover:underline disabled:opacity-50"
           >
             Cancelar
           </button>
         </div>
-        {erro && <span className="text-[#B3462C]">{erro}</span>}
+        {erro && <span className="text-[#E2534A]">{erro}</span>}
       </div>
     );
   }
@@ -78,7 +74,7 @@ export default function ResetarDiaButton({ userId, onReset }) {
   return (
     <button
       onClick={() => setConfirmando(true)}
-      className="text-[12px] text-[#6B6B63] hover:text-[#B3462C] transition"
+      className="text-[12px] text-[#8B9296] hover:text-[#E2534A] transition"
     >
       Resetar hoje
     </button>

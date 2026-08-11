@@ -42,12 +42,12 @@ function construirGrafico(pontos) {
   return { coords, linha, area, min, max };
 }
 
-function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
+function GraficoLinha({ pontos, sufixo = "", cor = "#C9A227" }) {
   const grafico = construirGrafico(pontos);
 
   if (!grafico || pontos.length < 2) {
     return (
-      <p className="text-[13px] text-[#8A8360] py-8 text-center">
+      <p className="text-[13px] text-[#8B9296] py-8 text-center">
         Ainda não tem dados suficientes pra montar o gráfico (precisa de pelo
         menos 2 registros).
       </p>
@@ -55,7 +55,6 @@ function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
   }
 
   const { coords, linha, area } = grafico;
-  // mostra no máximo ~6 labels no eixo X pra não poluir
   const passoLabel = Math.max(1, Math.ceil(coords.length / 6));
 
   return (
@@ -64,7 +63,6 @@ function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
       className="w-full h-auto"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* linhas de grade horizontais */}
       {[0, 0.5, 1].map((frac) => (
         <line
           key={frac}
@@ -72,12 +70,12 @@ function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
           x2={LARGURA - PADDING}
           y1={PADDING + frac * (ALTURA - PADDING * 2)}
           y2={PADDING + frac * (ALTURA - PADDING * 2)}
-          stroke="#EDEBE5"
+          stroke="#2A2E31"
           strokeWidth="1"
         />
       ))}
 
-      <path d={area} fill={cor} fillOpacity="0.08" />
+      <path d={area} fill={cor} fillOpacity="0.12" />
       <path d={linha} fill="none" stroke={cor} strokeWidth="2.5" />
 
       {coords.map((c, i) => (
@@ -89,7 +87,7 @@ function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
               y={ALTURA + 14}
               fontSize="10"
               textAnchor="middle"
-              fill="#8A8360"
+              fill="#8B9296"
             >
               {formatarDataCurta(c.data)}
             </text>
@@ -97,7 +95,6 @@ function GraficoLinha({ pontos, sufixo = "", cor = "#2F4A3D" }) {
         </g>
       ))}
 
-      {/* valor no último ponto, pra destacar onde você está agora */}
       <text
         x={coords[coords.length - 1].x}
         y={coords[coords.length - 1].y - 10}
@@ -159,7 +156,6 @@ export default function EvolucaoPage() {
       }));
       setSimuladosPontos(sims);
 
-      // Resumo: média de horas dos últimos 7 registros e melhor/último simulado
       const ultimosSete = (dias || []).slice(-7);
       const mediaHoras =
         ultimosSete.length > 0
@@ -192,49 +188,50 @@ export default function EvolucaoPage() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center">
-        <p className="text-[#8A8360] text-sm animate-pulse">Carregando...</p>
+      <div className="min-h-screen bg-[#14171A] flex items-center justify-center">
+        <p className="text-[#8B9296] text-sm animate-pulse">Carregando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] px-4 py-8">
+    <div className="min-h-screen bg-[#14171A] px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8360] font-medium mb-1">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-[#8B9296] font-medium mb-1">
               Sua trajetória
             </p>
-            <h1 className="font-serif text-[24px] text-[#1B1F1D]">Evolução</h1>
+            <h1 className="font-[family-name:var(--font-oswald)] font-medium text-[22px] text-[#E9E7E0]">
+              Evolução
+            </h1>
           </div>
           <a
             href="/"
-            className="text-[13px] text-[#6B6B63] hover:text-[#1B1F1D] transition"
+            className="text-[13px] text-[#8B9296] hover:text-[#E9E7E0] transition"
           >
             ← Home
           </a>
         </div>
 
-        {/* Resumo rápido */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-xl border border-[#E4E1DA] p-4">
-            <p className="text-[11px] text-[#6B6B63] mb-1">Média/dia (7d)</p>
-            <p className="font-serif text-[20px] text-[#1B1F1D] leading-none">
+          <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-4">
+            <p className="text-[11px] text-[#8B9296] mb-1">Média/dia (7d)</p>
+            <p className="font-[family-name:var(--font-geist-mono)] text-[19px] text-[#E9E7E0] leading-none">
               {resumo.mediaHorasSemana}h
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E4E1DA] p-4">
-            <p className="text-[11px] text-[#6B6B63] mb-1">Último simulado</p>
-            <p className="font-serif text-[20px] text-[#1B1F1D] leading-none">
+          <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-4">
+            <p className="text-[11px] text-[#8B9296] mb-1">Último simulado</p>
+            <p className="font-[family-name:var(--font-geist-mono)] text-[19px] text-[#E9E7E0] leading-none">
               {resumo.ultimoSimulado != null
                 ? `${resumo.ultimoSimulado}%`
                 : "–"}
             </p>
           </div>
-          <div className="bg-white rounded-xl border border-[#E4E1DA] p-4">
-            <p className="text-[11px] text-[#6B6B63] mb-1">Melhor simulado</p>
-            <p className="font-serif text-[20px] text-[#1B1F1D] leading-none">
+          <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-4">
+            <p className="text-[11px] text-[#8B9296] mb-1">Melhor simulado</p>
+            <p className="font-[family-name:var(--font-geist-mono)] text-[19px] text-[#E9E7E0] leading-none">
               {resumo.melhorSimulado != null
                 ? `${resumo.melhorSimulado}%`
                 : "–"}
@@ -242,20 +239,18 @@ export default function EvolucaoPage() {
           </div>
         </div>
 
-        {/* Gráfico de horas */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-3">
             Horas estudadas (últimos registros)
           </p>
-          <GraficoLinha pontos={horasPontos} sufixo="h" cor="#2F4A3D" />
+          <GraficoLinha pontos={horasPontos} sufixo="h" cor="#C9A227" />
         </div>
 
-        {/* Gráfico de simulados */}
-        <div className="bg-white rounded-xl border border-[#E4E1DA] p-5 mb-4">
-          <p className="text-[13px] font-medium text-[#1B1F1D] mb-3">
+        <div className="bg-[#1D2124] rounded-lg border border-[#2A2E31] p-5 mb-4">
+          <p className="text-[13px] font-medium text-[#E9E7E0] mb-3">
             % de acertos nos simulados
           </p>
-          <GraficoLinha pontos={simuladosPontos} sufixo="%" cor="#8A6D1F" />
+          <GraficoLinha pontos={simuladosPontos} sufixo="%" cor="#7A9770" />
         </div>
       </div>
     </div>
