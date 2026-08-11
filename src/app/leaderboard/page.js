@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 function UserIcon() {
   return (
@@ -107,9 +108,10 @@ export default function LeaderboardPage() {
             {ranking.map((r, i) => {
               const éVoce = r.user_id === userId;
               return (
-                <div
+                <Link
                   key={r.user_id}
-                  className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                  href={`/candidato/${r.user_id}`}
+                  className={`flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:border-[#C9A227]/40 ${
                     éVoce
                       ? "border-[#5C4A1A] bg-[#1F1B0D]"
                       : "border-[#2A2E31] bg-[#1D2124]"
@@ -153,7 +155,7 @@ export default function LeaderboardPage() {
                     </p>
                     <p className="text-[10px] text-[#8B9296]">pontos</p>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
